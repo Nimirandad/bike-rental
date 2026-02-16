@@ -1,0 +1,61 @@
+# Git
+.git
+.gitignore
+.github
+
+# Testing
+coverage.out
+coverage.html
+*.test
+
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Documentation (will be generated during build)
+# docs/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies (will be downloaded during build)
+vendor/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# CI/CD
+.gitlab-ci.yml
+.travis.yml
+azure-pipelines.yml
+
+# Documentation
+README.md
+LICENSE
+*.md
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore

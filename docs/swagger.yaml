@@ -1,0 +1,954 @@
+basePath: /api/v1
+definitions:
+  models.Bike:
+    properties:
+      id:
+        type: integer
+      is_available:
+        type: boolean
+      latitude:
+        type: number
+      longitude:
+        type: number
+      price_per_minute:
+        type: number
+    type: object
+  models.Rental:
+    properties:
+      bike_id:
+        type: integer
+      cost:
+        type: number
+      created_at:
+        type: string
+      duration_minutes:
+        type: integer
+      end_latitude:
+        type: number
+      end_longitude:
+        type: number
+      end_time:
+        type: string
+      id:
+        type: integer
+      start_latitude:
+        type: number
+      start_longitude:
+        type: number
+      start_time:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  services.HealthStatus:
+    properties:
+      database:
+        type: string
+      service:
+        type: string
+      status:
+        type: string
+      timestamp:
+        type: string
+      version:
+        type: string
+    type: object
+  types.AddBikeRequest:
+    properties:
+      latitude:
+        type: number
+      longitude:
+        type: number
+      price_per_minute:
+        type: number
+    type: object
+  types.AdminUpdateUserRequest:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+    type: object
+  types.EndRentalRequest:
+    properties:
+      latitude:
+        type: number
+      longitude:
+        type: number
+    type: object
+  types.ErrorResponse:
+    properties:
+      details:
+        additionalProperties:
+          type: string
+        type: object
+      error:
+        type: string
+    type: object
+  types.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  types.LoginResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  types.PaginatedResponse:
+    properties:
+      data: {}
+      limit:
+        type: integer
+      message:
+        type: string
+      page:
+        type: integer
+      total:
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  types.RegisterUserRequest:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      password:
+        type: string
+    type: object
+  types.StartRentalRequest:
+    properties:
+      bike_id:
+        type: integer
+    type: object
+  types.SuccessResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+    type: object
+  types.UpdateBikeRequest:
+    properties:
+      is_available:
+        type: boolean
+      latitude:
+        type: number
+      longitude:
+        type: number
+      price_per_minute:
+        type: number
+    type: object
+  types.UpdateRentalRequest:
+    properties:
+      status:
+        type: string
+    type: object
+  types.UpdateUserRequest:
+    properties:
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@bikerental.com
+    name: API Support
+  description: API para gestión de alquiler de bicicletas
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Bike Rental Service API
+  version: "1.0"
+paths:
+  /admin/bikes:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated list of all bikes in the system (requires admin authentication)
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: All bikes retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Bike'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BasicAuth: []
+      summary: Get all bikes (Admin)
+      tags:
+      - admin
+    post:
+      consumes:
+      - application/json
+      description: Create a new bike with location and pricing (requires admin authentication)
+      parameters:
+      - description: Bike data with coordinates and price
+        in: body
+        name: bike
+        required: true
+        schema:
+          $ref: '#/definitions/types.AddBikeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bike added successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Bike'
+              type: object
+        "400":
+          description: Invalid coordinates or price
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized - admin credentials required
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BasicAuth: []
+      summary: Add a new bike (Admin)
+      tags:
+      - admin
+  /admin/bikes/{bike-id}:
+    patch:
+      consumes:
+      - application/json
+      description: Update bike details like location, availability, or price (requires
+        admin authentication)
+      parameters:
+      - description: Bike ID
+        in: path
+        name: bike-id
+        required: true
+        type: integer
+      - description: Bike update data
+        in: body
+        name: bike
+        required: true
+        schema:
+          $ref: '#/definitions/types.UpdateBikeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bike updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Bike'
+              type: object
+        "400":
+          description: Invalid bike ID or update data
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "404":
+          description: Bike not found
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BasicAuth: []
+      summary: Update bike (Admin)
+      tags:
+      - admin
+  /admin/rentals:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated list of all rentals in the system (requires admin
+        authentication)
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: All rentals retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Rental'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BasicAuth: []
+      summary: Get all rentals (Admin)
+      tags:
+      - admin
+  /admin/rentals/{rental-id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific rental (requires admin
+        authentication)
+      parameters:
+      - description: Rental ID
+        in: path
+        name: rental-id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rental details retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Rental'
+              type: object
+        "400":
+          description: Invalid rental ID
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "404":
+          description: Rental not found
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BasicAuth: []
+      summary: Get rental details (Admin)
+      tags:
+      - admin
+    patch:
+      consumes:
+      - application/json
+      description: Update rental status (requires admin authentication)
+      parameters:
+      - description: Rental ID
+        in: path
+        name: rental-id
+        required: true
+        type: integer
+      - description: Rental update data with status
+        in: body
+        name: rental
+        required: true
+        schema:
+          $ref: '#/definitions/types.UpdateRentalRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rental updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Rental'
+              type: object
+        "400":
+          description: Invalid rental ID or status required
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BasicAuth: []
+      summary: Update rental (Admin)
+      tags:
+      - admin
+  /admin/users:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated list of all users in the system (requires admin authentication)
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: All users retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.User'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BasicAuth: []
+      summary: Get all users (Admin)
+      tags:
+      - admin
+  /admin/users/{user-id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a specific user (requires admin
+        authentication)
+      parameters:
+      - description: User ID
+        in: path
+        name: user-id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User details retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "400":
+          description: Invalid user ID
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BasicAuth: []
+      summary: Get user details (Admin)
+      tags:
+      - admin
+    patch:
+      consumes:
+      - application/json
+      description: Update user details including email, name, or password (requires
+        admin authentication)
+      parameters:
+      - description: User ID
+        in: path
+        name: user-id
+        required: true
+        type: integer
+      - description: User update data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/types.AdminUpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "400":
+          description: Invalid user ID or update data
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "409":
+          description: Email already exists
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BasicAuth: []
+      summary: Update user (Admin)
+      tags:
+      - admin
+  /bikes/available:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated list of available bikes for rent
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of available bikes
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Bike'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized - missing or invalid token
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List available bikes
+      tags:
+      - bikes
+  /rentals/end:
+    post:
+      consumes:
+      - application/json
+      description: End the active rental for authenticated user with end location
+      parameters:
+      - description: End location coordinates
+        in: body
+        name: rental
+        required: true
+        schema:
+          $ref: '#/definitions/types.EndRentalRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rental ended successfully with cost
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Rental'
+              type: object
+        "400":
+          description: Invalid coordinates or location too far from start
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "409":
+          description: No active rental to end
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: End a bike rental
+      tags:
+      - rentals
+  /rentals/history:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated rental history for authenticated user
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page (max 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rental history retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.PaginatedResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Rental'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get rental history
+      tags:
+      - rentals
+  /rentals/start:
+    post:
+      consumes:
+      - application/json
+      description: Start a new rental for the authenticated user with specified bike
+      parameters:
+      - description: Rental start data with bike_id
+        in: body
+        name: rental
+        required: true
+        schema:
+          $ref: '#/definitions/types.StartRentalRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Rental started successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Rental'
+              type: object
+        "400":
+          description: Invalid request payload or bike_id
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "404":
+          description: Bike not found
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "409":
+          description: User has active rental or bike not available
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Start a bike rental
+      tags:
+      - rentals
+  /status:
+    get:
+      consumes:
+      - application/json
+      description: Check API and database health status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service is healthy
+          schema:
+            $ref: '#/definitions/services.HealthStatus'
+        "503":
+          description: Service is unhealthy
+          schema:
+            $ref: '#/definitions/services.HealthStatus'
+      summary: Health check
+      tags:
+      - health
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return JWT token
+      parameters:
+      - description: Login credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/types.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful with JWT token
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.LoginResponse'
+              type: object
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: User login
+      tags:
+      - users
+  /users/profile:
+    get:
+      consumes:
+      - application/json
+      description: Get authenticated user's profile information
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User profile retrieved successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "401":
+          description: Unauthorized - missing or invalid token
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - users
+    patch:
+      consumes:
+      - application/json
+      description: Update authenticated user's profile (email, first name, last name)
+      parameters:
+      - description: Profile update data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/types.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Profile updated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "400":
+          description: Invalid request payload or validation errors
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "409":
+          description: Email already in use
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user profile
+      tags:
+      - users
+  /users/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with email, password, first name and last name
+      parameters:
+      - description: User registration data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/types.RegisterUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User registered successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/types.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.User'
+              type: object
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "409":
+          description: Email already exists
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/types.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - users
+securityDefinitions:
+  BasicAuth:
+    type: basic
+  BearerAuth:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
