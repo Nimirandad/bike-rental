@@ -33,7 +33,7 @@ API RESTful para gestión de renta de bicicletas construida con Go, SQLite y arq
 ### Clonar el Repositorio
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Nimirandad/bike-rental
 cd bike-rental
 ```
 
@@ -45,7 +45,7 @@ Crea un archivo `.env` en la raíz:
 # .env
 PORT=8080
 SQLITE_PATH=data/bike_rental.db
-JWT_SECRET=change-this-secret-in-production
+JWT_SECRET=dev-secret-key-12345
 ADMIN_CREDENTIALS=YWRtaW46YmlrZXJlbnRhbGFkbWlu  # admin:bikerentaladmin
 LOG_LEVEL=info
 ```
@@ -58,7 +58,8 @@ echo -n "admin:tu_password" | base64
 ### Instalar Dependencias
 
 ```bash
-go mod download
+# Descarga dependencias y verifica go.mod/go.sum
+go mod tidy
 ```
 
 
