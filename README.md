@@ -61,8 +61,6 @@ echo -n "admin:tu_password" | base64
 go mod download
 ```
 
----
-
 
 ---
 
@@ -153,6 +151,36 @@ make test
 make test-coverage
 # Abre coverage.html en el navegador
 ```
+
+### Testing con Postman
+
+#### Importar Colección
+
+1. Abre Postman
+2. Click en **Import**
+3. Selecciona `postman/bike-rental-service-collection.json`
+4. La colección estará lista con todos los endpoints configurados
+
+#### Uso
+
+1. Ejecuta `make migrate && make run` o `make docker-build && make docker-run` para iniciar el servidor
+2. En Postman, ejecuta **Register User** 
+3. Ejecuta **Login User** (el token se guarda automáticamente)
+4. Los demás endpoints usan el token automáticamente
+
+#### Variables de la Colección
+
+- `base_url`: http://localhost:8080 (modificable)
+- `jwt_token`: Se guarda automáticamente al hacer login
+- `user_id`, `bike_id`, `rental_id`: Se actualizan con cada request
+
+La colección incluye:
+- 18 endpoints completamente configurados
+- Scripts de test automáticos para guardar tokens y IDs
+- Request bodies con ejemplos realistas
+- Query params preconfigurados
+- Soporte para autenticación Bearer y Basic Auth
+
 ---
 
 ## Documentación Swagger
