@@ -1,6 +1,6 @@
 # Bike Rental Service API
 
-![Coverage](https://img.shields.io/badge/coverage-94.5%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-82.3%25-brightgreen).
 
 API RESTful para gestión de renta de bicicletas construida con Go, SQLite y arquitectura hexagonal.
 

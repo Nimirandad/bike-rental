@@ -85,7 +85,7 @@ test-coverage:
 		utils=$$(grep "internal/utils" /tmp/test_output.txt | grep -o "[0-9.]*%" | tr -d "%" || echo "0.0"); \
 		types=$$(grep "internal/types" /tmp/test_output.txt | grep -o "[0-9.]*%" | tr -d "%" || echo "0.0"); \
 		config=$$(grep "internal/config" /tmp/test_output.txt | grep -o "[0-9.]*%" | tr -d "%" || echo "0.0"); \
-		total=$$(echo "scale=1; ($$handlers + $$services + $$repos + $$utils + $$types + $$config) / 6" | bc); \
+		total=$$(go tool cover -func=coverage.out | tail -n 1 | awk "{print \$$3}" | tr -d "%"); \
 		color=$$(get_color $$total); \
 		badge="![Coverage](https://img.shields.io/badge/coverage-$${total}%25-$$color)."; \
 		sed -i.bak "3s|^.*Coverage.*$$|$$badge|" README.md && rm -f README.md.bak; \
